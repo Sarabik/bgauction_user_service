@@ -1,0 +1,17 @@
+DROP TABLE IF EXISTS users;
+
+CREATE TABLE users (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(25) NOT NULL,
+    password VARCHAR(255) NOT NULL,
+    email VARCHAR(255) NOT NULL UNIQUE,
+    enabled BOOLEAN NOT NULL,
+    role VARCHAR(50) NOT NULL,
+    created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    first_name VARCHAR(255),
+    last_name VARCHAR(255),
+    country VARCHAR(255),
+    city VARCHAR(255),
+    delivery_info TEXT
+);
