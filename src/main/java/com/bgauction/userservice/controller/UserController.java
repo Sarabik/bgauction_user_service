@@ -52,7 +52,12 @@ public class UserController {
 
     @Operation(summary = "Get user by ID", description = "Returns a user by ID")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "User is successfully found by id"),
+            @ApiResponse(responseCode = "200", description = "User is successfully found by id",
+                    content = @Content(mediaType = "application/json",
+                    schema = @Schema(implementation = UserDto.class))),
+            @ApiResponse(responseCode = "400", description = "Invalid input data",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ErrorsResponse.class))),
             @ApiResponse(responseCode = "401", description = "User is unauthorized", content = @Content()),
             @ApiResponse(responseCode = "403", description = "Access is forbidden", content = @Content()),
             @ApiResponse(responseCode = "404", description = "User is not found",
@@ -60,7 +65,11 @@ public class UserController {
                             schema = @Schema(implementation = ErrorsResponse.class)))
     })
     @GetMapping("{id}")
-    public ResponseEntity<UserDto> getUserById(@PathVariable @Positive Long id, Principal principal) {
+    public ResponseEntity<?> getUserById(@PathVariable Long id, Principal principal) {
+        if (id <= 0) {
+            throw new InvalidIdException("Id must be greater than 0");
+        }
+        log.info("Principal: {}", principal.getName());
         UserDto userDto = userService.findUserById(id);
         if (!principal.getName().equals(userDto.getEmail())) {
             return new ResponseEntity<>(HttpStatus.FORBIDDEN);
@@ -82,9 +91,12 @@ public class UserController {
                             schema = @Schema(implementation = ErrorsResponse.class)))
     })
     @PutMapping("{id}")
-    public ResponseEntity<?> updateUser(@PathVariable @Positive Long id,
+    public ResponseEntity<?> updateUser(@PathVariable Long id,
                                         @Valid @RequestBody UserDto userDto,
                                         Principal principal) {
+        if (id <= 0) {
+            throw new InvalidIdException("Path variable id must be greater than 0");
+        }
         if (!id.equals(userDto.getId())) {
             throw new InvalidIdException("Path variable id is not equal to User id");
         }
@@ -104,6 +116,9 @@ public class UserController {
     @Operation(summary = "Delete user by id", description = "Deletes user by id")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "204", description = "User is deleted successfully"),
+            @ApiResponse(responseCode = "400", description = "Invalid input data",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ErrorsResponse.class))),
             @ApiResponse(responseCode = "401", description = "User is unauthorized", content = @Content()),
             @ApiResponse(responseCode = "403", description = "Access is forbidden", content = @Content()),
             @ApiResponse(responseCode = "404", description = "User is not found",
@@ -111,7 +126,10 @@ public class UserController {
                             schema = @Schema(implementation = ErrorsResponse.class)))
     })
     @DeleteMapping("{id}")
-    public ResponseEntity<?> deleteUser(@PathVariable @Positive Long id, Principal principal) {
+    public ResponseEntity<?> deleteUser(@PathVariable Long id, Principal principal) {
+        if (id <= 0) {
+            throw new InvalidIdException("Path variable id must be greater than 0");
+        }
         String email = principal.getName();
         userService.deleteUserById(id, email);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);

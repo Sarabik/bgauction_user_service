@@ -58,11 +58,21 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void updateUser(UserDto userDto) {
-        checkIfExistsById(userDto.getId());
+        Long id = userDto.getId();
+        Optional<User> userOpt = userRepository.findById(id);
+        if (userOpt.isEmpty()) {
+            log.warn("User with id {} is not found", id);
+            throw new NotFoundException("User with id " + id + " not found");
+        }
+
+        User notUpdatedUser = userOpt.get();
         User userForUpdate = userMapper.userDtoToUser(userDto);
         log.info("Updating User: {}", userForUpdate);
+        userForUpdate.setPassword(notUpdatedUser.getPassword());
+        userForUpdate.setRole(notUpdatedUser.getRole());
+        userForUpdate.setEnabled(notUpdatedUser.getEnabled());
         userRepository.save(userForUpdate);
-        log.info("User with id {} updated", userForUpdate);
+        log.info("User with id {} updated", userDto.getId());
     }
 
     @Override

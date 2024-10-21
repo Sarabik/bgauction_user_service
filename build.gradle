@@ -17,6 +17,9 @@ configurations {
 	compileOnly {
 		extendsFrom annotationProcessor
 	}
+    configureEach {
+		exclude group: 'org.springframework.boot', module: 'spring-boot-starter-logging'
+	}
 }
 
 repositories {
@@ -29,6 +32,9 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-validation'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	implementation 'org.springframework.boot:spring-boot-starter-security'
+
+	// logging
+	implementation 'org.springframework.boot:spring-boot-starter-log4j2'
 
 	// Lombok
 	compileOnly 'org.projectlombok:lombok'
@@ -43,7 +49,7 @@ dependencies {
 	developmentOnly 'org.springframework.boot:spring-boot-devtools'
 
 	// OpenAPI
-	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.6.0'
+	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.1.0'
 
 	// MySQL Driver
 	runtimeOnly 'com.mysql:mysql-connector-j:8.0.33'
@@ -52,7 +58,6 @@ dependencies {
 	implementation 'io.jsonwebtoken:jjwt-api:0.12.4'
 	runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.12.4'
 	implementation 'io.jsonwebtoken:jjwt-jackson:0.12.4'
-
 
 	// Tests
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'

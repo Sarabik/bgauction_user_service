@@ -21,7 +21,6 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -56,8 +55,17 @@ public class AuthController {
         return new ResponseEntity<>(savedUserDto, HttpStatus.CREATED);
     }
 
+    @Operation(summary = "Login user", description = "Login user")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Successfully login"),
+            @ApiResponse(responseCode = "400", description = "Invalid input data",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ErrorsResponse.class))),
+            @ApiResponse(responseCode = "401", description = "Bad credentials", content = @Content()),
+            @ApiResponse(responseCode = "403", description = "Access is forbidden", content = @Content())
+    })
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody LoginUserDto userDto) {
+    public ResponseEntity<?> login(@Valid @RequestBody LoginUserDto userDto) {
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(userDto.getEmail(), userDto.getPassword()));
         SecurityContextHolder.getContext().setAuthentication(authentication);
@@ -65,6 +73,8 @@ public class AuthController {
         String jwt = jwtUtil.generateToken(userDto.getEmail());
         Map<String, String> token = new HashMap<>();
         token.put("token", jwt);
+        log.info("Successfully login User with email {}", userDto.getEmail());
         return ResponseEntity.ok(token);
     }
+
 }
