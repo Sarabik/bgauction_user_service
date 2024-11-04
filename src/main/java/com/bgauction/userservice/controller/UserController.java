@@ -76,6 +76,15 @@ public class UserController {
         return new ResponseEntity<>(userDto, HttpStatus.OK);
     }
 
+    @GetMapping("/client/{id}")
+    public ResponseEntity<?> getUserById(@PathVariable Long id) {
+        if (id <= 0) {
+            throw new InvalidIdException("Id must be greater than 0");
+        }
+        UserDto userDto = userService.findUserById(id);
+        return new ResponseEntity<>(userDto, HttpStatus.OK);
+    }
+
     @Operation(summary = "Update user by ID", description = "Returns URI with location")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "204", description = "User is updated successfully",

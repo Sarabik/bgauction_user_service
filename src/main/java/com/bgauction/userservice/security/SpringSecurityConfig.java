@@ -26,6 +26,7 @@ public class SpringSecurityConfig {
                 .authorizeHttpRequests(
                         configurer -> configurer
                                 .requestMatchers(HttpMethod.POST, "/auth/**").permitAll()
+                                .requestMatchers(HttpMethod.GET, "/user/client/**").permitAll()
                                 .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
                                 .anyRequest().authenticated()
                 )
