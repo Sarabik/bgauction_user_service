@@ -22,7 +22,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
@@ -33,7 +33,6 @@ import java.util.List;
 @RestController
 @Tag(name = "User API", description = "Operations related to Users")
 @RequiredArgsConstructor
-@RequestMapping("/user")
 public class UserController {
 
     private final UserService userService;
@@ -44,7 +43,7 @@ public class UserController {
             @ApiResponse(responseCode = "401", description = "User is unauthorized", content = @Content()),
             @ApiResponse(responseCode = "403", description = "Access is forbidden", content = @Content())
     })
-    @GetMapping
+    @GetMapping("/internal/user")
     public List<UserDto> getAllUserList() {
         return userService.findAllUsers();
     }
@@ -63,23 +62,14 @@ public class UserController {
                             content = @Content(mediaType = "application/json",
                             schema = @Schema(implementation = ErrorsResponse.class)))
     })
-    @GetMapping("{id}")
-    public ResponseEntity<?> getUserById(@PathVariable Long id, Principal principal) {
+    @GetMapping({"/user/{id}", "/internal/user/{id}"})
+    public ResponseEntity<?> getUserById(@PathVariable Long id,
+                                         @RequestHeader(value = "X-User-Id", required = false) Long userId) {
         if (id <= 0) {
             throw new InvalidIdException("Id must be greater than 0");
         }
-        log.info("Principal: {}", principal.getName());
-        UserDto userDto = userService.findUserById(id);
-        if (!principal.getName().equals(userDto.getEmail())) {
+        if (userId != null && !id.equals(userId)) {
             return new ResponseEntity<>(HttpStatus.FORBIDDEN);
-        }
-        return new ResponseEntity<>(userDto, HttpStatus.OK);
-    }
-
-    @GetMapping("/client/{id}")
-    public ResponseEntity<?> getUserById(@PathVariable Long id) {
-        if (id <= 0) {
-            throw new InvalidIdException("Id must be greater than 0");
         }
         UserDto userDto = userService.findUserById(id);
         return new ResponseEntity<>(userDto, HttpStatus.OK);
@@ -98,17 +88,17 @@ public class UserController {
                     content = @Content(mediaType = "application/json",
                             schema = @Schema(implementation = ErrorsResponse.class)))
     })
-    @PutMapping("{id}")
+    @PutMapping("/user/{id}")
     public ResponseEntity<?> updateUser(@PathVariable Long id,
                                         @Valid @RequestBody UserDto userDto,
-                                        Principal principal) {
+                                        @RequestHeader(value = "X-User-Id") Long userId) {
         if (id <= 0) {
             throw new InvalidIdException("Path variable id must be greater than 0");
         }
         if (!id.equals(userDto.getId())) {
             throw new InvalidIdException("Path variable id is not equal to User id");
         }
-        if (!principal.getName().equals(userDto.getEmail())) {
+        if (!id.equals(userId)) {
             return new ResponseEntity<>(HttpStatus.FORBIDDEN);
         }
         userService.updateUser(userDto);
@@ -133,7 +123,7 @@ public class UserController {
                     content = @Content(mediaType = "application/json",
                             schema = @Schema(implementation = ErrorsResponse.class)))
     })
-    @DeleteMapping("{id}")
+    @DeleteMapping("/internal/user/{id}")
     public ResponseEntity<?> deleteUser(@PathVariable Long id, Principal principal) {
         if (id <= 0) {
             throw new InvalidIdException("Path variable id must be greater than 0");

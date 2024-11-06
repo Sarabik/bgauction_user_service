@@ -5,6 +5,7 @@ import com.bgauction.userservice.model.dto.LoginUserDto;
 import com.bgauction.userservice.model.dto.RegisterUserDto;
 import com.bgauction.userservice.model.dto.UserDto;
 import com.bgauction.userservice.security.JwtUtil;
+import com.bgauction.userservice.security.UserDetailsImpl;
 import com.bgauction.userservice.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -21,6 +22,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -70,7 +72,12 @@ public class AuthController {
                 new UsernamePasswordAuthenticationToken(userDto.getEmail(), userDto.getPassword()));
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
-        String jwt = jwtUtil.generateToken(userDto.getEmail());
+        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+        Long userId = ((UserDetailsImpl) userDetails).getId();
+        String email = userDetails.getUsername();
+        String role = ((UserDetailsImpl) userDetails).getRole();
+
+        String jwt = jwtUtil.generateToken(userId, email, role);
         Map<String, String> token = new HashMap<>();
         token.put("token", jwt);
         log.info("Successfully login User with email {}", userDto.getEmail());
